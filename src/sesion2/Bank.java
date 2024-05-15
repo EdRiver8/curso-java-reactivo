@@ -135,8 +135,18 @@ class BankAccount {
 //    }
 }
 
-public class Principal {
+public class Bank {
     public static void main(String[] args) {
         System.out.println("Hello world!");
     }
+
+    // 1. Obtener el total de depositos realizados
+
+    // 2. Encontrar la trasaccion de retiro con el monto mas alto
+
+    // 3. Contar el numero de transacciones realizadas a una fecha especifica
+
+    // 4. Obtener el promedio de los montos de todas las transacciones realizadas
+
+    // 5. Filtrar transacciones con montos negativos
 }
