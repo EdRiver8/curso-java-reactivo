@@ -1,8 +1,7 @@
 package sesion2;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class Transaction {
@@ -60,6 +59,10 @@ class BankAccount {
         this.balance = balance;
         this.currency = currency;
         this.transactions = new ArrayList<>();
+    }
+
+    public BankAccount() {
+
     }
 
     public String getId() {
@@ -132,11 +135,93 @@ class BankAccount {
             .max((t1, t2) -> Double.compare(t1.getAmount(), t2.getAmount())); // se compara el monto de las transacciones y se obtiene la de mayor monto
     }
 
-//    public Optional<Double> getTransactionWithHighestAmount2(){
-//        return transactions.stream()
-//                .map(Trasanction::getAmount)
-//                .max(Double::compare);
-//    }
+    // TODO 1: Implementar getTotalBalance utilizando streams y reduce
+    public Optional<Double> getTotalBalanceReturnOptional(){
+        return transactions.stream()
+            .map(transaction -> transaction.getType().equals("income") ? transaction.getAmount() : -transaction.getAmount())
+            .reduce(Double::sum);
+    }
+
+    // TODO 2: Implementar getDeposits utilizando streams y filter
+    public Optional<List<Transaction>> getDeposits(){
+        return Optional.of(transactions.stream()
+                .filter(transaction -> transaction.getType().equals("income"))
+                .toList());
+    }
+
+    // TODO 3: Implementar getWithdrawals utilizando streams y filter
+    public Optional<List<Transaction>> getWithdrawals(){
+        return Optional.of(transactions.stream()
+            .filter(transaction -> transaction.getType().equals("expense"))
+            .collect(Collectors.toList()));
+    }
+
+    // TODO 4: Implementar filterTransactions utilizando Function y streams
+    public Optional<List<Transaction>> filterTransactions(Function<Transaction, Boolean> filter){
+        return Optional.of(transactions.stream()
+            .filter(filter::apply)
+            .collect(Collectors.toList()));
+    }
+
+    // TODO 5: Implementar getTotalDeposits utilizando getDeposits y mapToDouble
+    public Optional<Double> getTotalDeposits(){
+        return Optional.of(getDeposits().stream()
+            .flatMap(Collection::stream)
+            .mapToDouble(t -> t.getAmount())
+            .sum());
+    }
+
+    // TODO 6: Implementar getLargestWithdrawal utilizando getWithdrawals y max
+    public Optional<Transaction> getLargestWithdrawal(){
+        return getWithdrawals().flatMap(list -> list.stream().max(Comparator.comparingDouble(Transaction::getAmount)));
+    }
+
+    // TODO 7: Implementar getTransactionsOnDate utilizando streams y filter
+    public Optional<List<Transaction>> getTransactionsOnDate(String date){
+        return Optional.of(transactions.stream()
+            .filter(transaction -> transaction.getDate().equals(date))
+            .collect(Collectors.toList()));
+    }
+
+    // TODO 8: Implementar getAverageTransactionAmount utilizando streams y mapToDouble
+    public Optional<Double> getAverageTransactionAmount(){
+        return Optional.of(transactions.stream()
+            .mapToDouble(Transaction::getAmount)
+            .average()
+            .orElse(0.0));
+    }
+
+    // TODO 9: Implementar getTransactionsWithAmountGreaterThan utilizando streams y filter
+    public Optional<List<Transaction>> getTransactionsWithAmountGreaterThan(double amount){
+        return Optional.of(transactions.stream()
+            .filter(transaction -> transaction.getAmount() > amount)
+            .collect(Collectors.toList()));
+    }
+
+    // TODO 10: Implementar transfer utilizando addTransaction
+    public void transfer(BankAccount account, double amount, String date, String description){
+        Transaction transaction = new Transaction("1", "expense", amount, currency, date, description);
+        addTransaction(transaction);
+        account.addTransaction(transaction);
+    }
+
+    // TODO 11: Implementar getTotalWithdrawals utilizando getWithdrawals y mapToDouble
+    public Optional<Double> getTotalWithdrawals(){
+//        return Optional.of(getWithdrawals().stream()
+//            .flatMap(t -> t.stream())
+//            .mapToDouble(t -> t.getAmount())
+//            .sum());
+        return Optional.of(getWithdrawals()
+                .map(list -> list.stream().mapToDouble(Transaction::getAmount).sum())
+                .orElse(0.0));
+    }
+
+    // TODO 12: Implementar getTransactionsSummary utilizando streams, map y collect
+    public Optional<List<String>> getTransactionsSummary(){
+        return Optional.of(transactions.stream()
+            .map(transaction -> transaction.getDescription() + ": " + transaction.getAmount())
+            .collect(Collectors.toList()));
+    }
 }
 
 public class Bank {
@@ -156,7 +241,7 @@ public class Bank {
         Transaction t10 = new Transaction("10", "expense", 200, "USD", "2021-09-10", "Transport");
 
         // se crea la cuenta bancaria
-        BankAccount account = new BankAccount("1", "John Doe", 0, "USD");
+        BankAccount account = new BankAccount("1", "Goku Emilio", 0, "USD");
         // se agregan las transacciones a la cuenta, teniendo en cuenta que las trasacciones son una lista en BankAccount
         account.addTransaction(t1);
         account.addTransaction(t2);
@@ -190,6 +275,26 @@ public class Bank {
         List<Transaction> negativeTransactions = account.getTransactions().stream()
                 .filter(transaction -> transaction.getAmount() < 0)
                 .toList();
+
+        BankAccount account2 = new BankAccount("2", "Jane Doe", 0, "EUR");
+        account2.addTransaction(new Transaction("1", "deposit", 100, "EUR", "2024-05-13", "Deposit 1"));
+        account2.addTransaction(new Transaction("2", "withdrawal", 50, "EUR", "2024-05-14", "Withdrawal 1"));
+        account2.addTransaction(new Transaction("3", "deposit", 200, "EUR", "2024-05-15", "Deposit 2"));
+        account2.addTransaction(new Transaction("4", "deposit", 150, "EUR", "2024-05-16", "Deposit 3"));
+        account2.addTransaction(new Transaction("5", "withdrawal", 75, "USD", "2024-05-17", "Withdrawal 2"));
+
+        account.getTotalBalanceReturnOptional().ifPresent(balance -> System.out.println("Saldo total: " + balance));
+        account.getTotalDeposits().ifPresent(total -> System.out.println("Total de depósitos: " + total));
+        account.getLargestWithdrawal().ifPresent(transaction -> System.out.println("Retiro de mayor monto: " + transaction.getAmount()));
+        account.getTransactionsOnDate("2024-05-13").ifPresent(transactions -> transactions.forEach(transaction -> System.out.println(transaction.getAmount())));
+        account.getAverageTransactionAmount().ifPresent(average -> System.out.println("Promedio de montos: " + average));
+        account.getTransactionsWithAmountGreaterThan(100).ifPresent(transactions -> transactions.forEach(transaction -> System.out.println(transaction.getAmount())));
+//        BankAccount targetAccount = new BankAccount();
+        account2.transfer(account, 100, "2024-05-18", "Transferencia");
+        account2.getTotalBalanceReturnOptional().ifPresent(balance -> System.out.println("Saldo total de la cuenta destino: " + balance));
+        account.getTotalWithdrawals().ifPresent(total -> System.out.println("Total de retiros: " + total));
+//        account.getTransactionsSummary().forEach((type, sum) -> System.out.println("Tipo: " + type + ", Total: " + sum));
+//        account.getTransactionsSummary().ifPresent(transactions -> transactions.forEach((transaction, type) -> System.out.println("Tipo: " + type + ", Total: " + transaction)));
     }
 
 }
