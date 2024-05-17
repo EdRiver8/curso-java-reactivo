@@ -78,6 +78,10 @@ class BankAccount {
         return currency;
     }
 
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
     public void addTransaction(Transaction transaction) {
         transactions.add(transaction);
     }
@@ -137,16 +141,55 @@ class BankAccount {
 
 public class Bank {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+//        System.out.println("Hello world!");
+        // antes de los siguientes puntos guardemos datos para poder realizar las consultas
+        // se crean las transacciones
+        Transaction t1 = new Transaction("1", "income", 1000, "USD", "2021-09-01", "Salary");
+        Transaction t2 = new Transaction("2", "income", 500, "USD", "2021-09-02", "Freelance");
+        Transaction t3 = new Transaction("3", "expense", 200, "USD", "2021-09-03", "Food");
+        Transaction t4 = new Transaction("4", "expense", 100, "USD", "2021-09-04", "Transport");
+        Transaction t5 = new Transaction("5", "income", 300, "USD", "2021-09-05", "Freelance");
+        Transaction t6 = new Transaction("6", "expense", 50, "USD", "2021-09-06", "Food");
+        Transaction t7 = new Transaction("7", "expense", 150, "USD", "2021-09-07", "Transport");
+        Transaction t8 = new Transaction("8", "income", 200, "USD", "2021-09-08", "Freelance");
+        Transaction t9 = new Transaction("9", "expense", 100, "USD", "2021-09-09", "Food");
+        Transaction t10 = new Transaction("10", "expense", 200, "USD", "2021-09-10", "Transport");
+
+        // se crea la cuenta bancaria
+        BankAccount account = new BankAccount("1", "John Doe", 0, "USD");
+        // se agregan las transacciones a la cuenta, teniendo en cuenta que las trasacciones son una lista en BankAccount
+        account.addTransaction(t1);
+        account.addTransaction(t2);
+        account.addTransaction(t3);
+        account.addTransaction(t4);
+        account.addTransaction(t5);
+        account.addTransaction(t6);
+        account.addTransaction(t7);
+        account.addTransaction(t8);
+        account.addTransaction(t9);
+        account.addTransaction(t10);
+
+        // 1. Obtener el total de depositos realizados
+        List<Transaction> totalIncome = account.getTotalIncome();
+
+        // 2. Encontrar la trasaccion de retiro con el monto mas alto
+        Optional<Transaction> transactionWithHighestAmount = account.getTransactionWithHighestAmount();
+
+        // 3. Contar el numero de transacciones realizadas a una fecha especifica usando programacion funcional
+        long transactionsOnDate = account.getTransactions().stream()
+                .filter(transaction -> transaction.getDate().equals("2021-09-05"))
+                .count();
+
+        // 4. Obtener el promedio de los montos de todas las transacciones realizadas
+        double averageAmount = account.getTransactions().stream()
+                .mapToDouble(Transaction::getAmount)
+                .average()
+                .orElse(0.0); // si no hay transacciones, se retorna 0.0
+
+        // 5. Filtrar transacciones con montos negativos
+        List<Transaction> negativeTransactions = account.getTransactions().stream()
+                .filter(transaction -> transaction.getAmount() < 0)
+                .toList();
     }
 
-    // 1. Obtener el total de depositos realizados
-
-    // 2. Encontrar la trasaccion de retiro con el monto mas alto
-
-    // 3. Contar el numero de transacciones realizadas a una fecha especifica
-
-    // 4. Obtener el promedio de los montos de todas las transacciones realizadas
-
-    // 5. Filtrar transacciones con montos negativos
 }
